@@ -35,18 +35,18 @@ The game was then republished on different regions by [OGPlanet](https://en.wiki
 TLDR: this doesnt work at all but have useful information about creating a private server using it.
 
 **Q: How to make the game connect to the server?**<br>
-R: Launch the game using: `./HevaUS.exe 127.0.0.1 27050`
+A: Launch the game using: `./HevaUS.exe 127.0.0.1 27050`
 
 **Q: How can I send a packet to the game? How can I read a packet from the game?**<br>
-R: You can't. Both the game and server uses packet obsfucation and both obfuscation methods are different from each other but they are similar.
+A: You can't. Both the game and server uses packet obsfucation and both obfuscation methods are different from each other but they are similar.
 
 **Q: Do you know the game packet format?**<br>
-R: Yes. Packets are basically: <br>
+A: Yes. Packets are basically: <br>
 ***[2 byte packet length] [2 byte something] [1 byte length header validation] [1 byte length body validation] [packet body]***<br>
 but this is all obfuscated, so you cant read it directly when receiving or sending packets.
 
 **Q: How can I extract the game files?**<br>
-R: Using the following [quickbms](https://github.com/LittleBigBug/QuickBMS) script:
+A: Using the following [quickbms](https://github.com/LittleBigBug/QuickBMS) script:
 ```
 # Heva Clonia Online (PBZ format)
 # 
@@ -78,4 +78,4 @@ while TEMP < PSIZE
 ```
 
 **Q: How do you know all of this? How can I help?**<br>
-R: I spent a few months going around using GHidra and IDA, although I didn't make much progress. If you want to help you can use these programs yourself or if you ever used Wireshark to do network captures of this game, it would really help a lot.
+A: I spent a few months going around using GHidra and IDA, although I didn't make much progress. If you want to help you can use these programs yourself or if you ever used Wireshark to do network captures of this game, it would really help a lot.
