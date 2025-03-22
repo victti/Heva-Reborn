@@ -22,12 +22,16 @@ export default class HevaClient
 
     async handleData(data: Buffer)
     {
+        console.log("received:", data);
+
         let deobfuscatedPacketHeader = deobfuscateClientPacketHeader(data, this.#packetsReceived);
         if(!deobfuscatedPacketHeader)
         {
             // TODO: disconnect the client, the packet is not valid
             return;
         }
+
+        this.#packetsReceived += 1;
 
         let deobfuscatedPacket = deobfuscateClientPacket(deobfuscatedPacketHeader);
         if(!deobfuscatedPacket)
@@ -39,28 +43,30 @@ export default class HevaClient
         ProtocolHandler.handleData(this, new HevaProtocolReader(deobfuscatedPacket));
         //return;
 
-        console.log(deobfuscatedPacket)
+        console.log("deobfuscated:", deobfuscatedPacket);
 
         let writer = new HevaProtocolWriter();
-        writer.writeUInt16(0x4);
-        writer.writeByte(0x00); // not used
-        writer.writeByte(0x00); // not used
-        writer.writeByte(0x00); // not used (byte 6)
-        writer.writeByte(0x00); // not used
-        writer.writeByte(0x00); // not used
-        writer.writeByte(0x00); // not used
-        writer.writeByte(0x01); // channel count
-        // channel data
-        writer.writeByte(0x01);
+        writer.writeUInt16(8);
+        writer.writeUInt16(0);
+        writer.writeByte(0x10); // not used (byte 6)
         writer.writeByte(0x00);
         writer.writeByte(0x00);
         writer.writeByte(0x00);
         writer.writeByte(0x00);
-        writer.writeByte(0x00);
-        // channel name
-        writer.writeStringNT("TestChannel");
+        for(let id = 0; id < 5; id++)
+        {
+            writer.writeStringNT("TestServer " + id);
+            writer.writeUInt32(id);
+        }
 
+        this.sendPacket(writer);
+    }
+
+    sendPacket(writer: HevaProtocolWriter)
+    {
         let buffer = writer.getBuffer();
+
+        console.log("sending:" + buffer.toString("hex"));
 
         this.#client.sendData(buffer);
     }

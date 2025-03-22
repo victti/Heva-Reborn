@@ -28,11 +28,13 @@ export function deobfuscateClientPacketHeader(packetData: Buffer<ArrayBuffer>, p
     extractedBits.writeUIntLE((((transformedBits | (packetHeader & 0xE00)) << 11) & 0xFFFFFF) | (maskedBits & 0xFFFFFF), 1, 3);
     let headerChecksum = maskedBits >> 24;
 
-    let lookupIndex = lookupIndexTable.readUInt16LE(packetIndex++) & 0x7FF;
+    let lookupIndex = lookupIndexTable.readUInt16LE(packetIndex * 2) & 0x7FF;
+
+    packetIndex += 1;
 
     if(lookupIndex != ((transformedBits | packetHeader & 0xe00) << 0xb | maskedBits) >> 0xe)
     {
-        console.error("Lookup index mismatch", lookupIndex, ((transformedBits | packetHeader & 0xe00) << 0xb | maskedBits) >> 0xe);
+        console.error("Lookup index mismatch", packetIndex, lookupIndex, ((transformedBits | packetHeader & 0xe00) << 0xb | maskedBits) >> 0xe);
         return undefined;
     }
 
@@ -130,6 +132,13 @@ export function deobfuscateClientPacket(packetData: Buffer<ArrayBuffer>)
     return undefined;
 }
 
+/**
+ * Obfuscates a server packet using the provided lookup tables and validation table.
+ * The obfuscation process involves generating random values, extracting packet size and second field,
+ * and performing a two-phase XOR operation on the packet data to produce the obfuscated packet.
+ * @param packetData - The server packet data represented as a Buffer.
+ * @returns The obfuscated packet as a Buffer if successful, or 0 if obfuscation fails.
+ */
 export function obfuscateServerPacket(packetData: Buffer<ArrayBuffer>)
 {
     // Generate random values similar to rand() % 512 and rand() % 16
@@ -228,6 +237,19 @@ export function obfuscateServerPacket(packetData: Buffer<ArrayBuffer>)
 
     return packetData;
 }
+
+/**
+ * Applies a workaround XOR transformation to an obfuscated packet.
+ * The function first copies and transforms the raw header and calculates
+ * a final validation byte. It then performs a 5-byte XOR transformation
+ * using lookup values from the server's lookup tables. If the packet size
+ * exceeds 6, it continues processing the remaining bytes using a rolling
+ * XOR transformation. The function ultimately returns the final rolling
+ * XOR value.
+ *
+ * @param obfuscatedPacket - The packet data to apply the XOR workaround on.
+ * @returns The final rolling XOR value after processing the packet.
+ */
 
 function xorWorkaround(obfuscatedPacket: Buffer)
 {

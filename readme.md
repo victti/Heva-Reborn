@@ -35,7 +35,7 @@ The game was then republished on different regions by [OGPlanet](https://en.wiki
 TLDR: this doesnt work at all but have useful information about creating a private server using it.
 
 **Q: How to make the game connect to the server?**<br>
-A: Launch the game using: `./HevaUS.exe 127.0.0.1 27050`
+A: Launch the game using: `./HevaUS.exe 127.0.0.1 50000`
 
 **Q: How can I send a packet to the game? How can I read a packet from the game?**<br>
 A: I've successfully decompiled the obfuscation and deobfuscation methods the game uses. Apparently the devs left the server code that obfuscates and deobfuscates the packets. *The server to client obfuscation is still WIP!
