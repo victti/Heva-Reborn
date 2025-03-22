@@ -3,7 +3,7 @@ import ida_bytes
 
 # Base address of `table` (from ECX register)
 table_base = 0x02DFA8F8  # Adjust as needed
-num_tables = 16  # Change based on the number of xorIndex values
+num_tables = 17  # Change based on the number of xorIndex values
 entries_per_table = 4  # Adjust based on size
 
 print("\n=== Extracting Multiple Tables ===")

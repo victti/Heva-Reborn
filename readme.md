@@ -38,12 +38,12 @@ TLDR: this doesnt work at all but have useful information about creating a priva
 A: Launch the game using: `./HevaUS.exe 127.0.0.1 27050`
 
 **Q: How can I send a packet to the game? How can I read a packet from the game?**<br>
-A: You can't. Both the game and server uses packet obsfucation and both obfuscation methods are different from each other but they are similar.
+A: I've successfully decompiled the obfuscation and deobfuscation methods the game uses. Apparently the devs left the server code that obfuscates and deobfuscates the packets. *The server to client obfuscation is still WIP!
 
 **Q: Do you know the game packet format?**<br>
-A: Yes. Packets are basically: <br>
-***[2 byte packet length] [2 byte something] [1 byte length header validation] [1 byte length body validation] [packet body]***<br>
-but this is all obfuscated, so you cant read it directly when receiving or sending packets.
+A: Yes. Packets are made following this format: <br>
+***[2 byte packet length] [2 byte protocol] [1 byte length header validation] [1 byte length body validation] [packet body] [5 byte length garbage data] ***<br>
+but this is all obfuscated, so you can't read it directly when receiving or sending packets.
 
 **Q: How can I extract the game files?**<br>
 A: Using the following [quickbms](https://github.com/LittleBigBug/QuickBMS) script:

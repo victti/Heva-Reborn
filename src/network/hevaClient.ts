@@ -1,30 +1,67 @@
 import HevaServer from "../main/hevaServer";
 import TCPClient from "./core/tcp/tcpClient";
-import { obfuscatePacket, readTable2, readTables } from "./packetUtils";
+import HevaProtocolReader from "./hevaProtocolReader";
+import HevaProtocolWriter from "./hevaProtocolWriter";
+import { deobfuscateClientPacket, deobfuscateClientPacketHeader, obfuscateServerPacket, readTable2, readTables } from "./packetUtils";
+import ProtocolHandler from "./protocolHandler";
 
 export default class HevaClient
 {
     #server: HevaServer;
     #client: TCPClient;
 
+    #packetsReceived: number;
+
     constructor(server: HevaServer, client: TCPClient)
     {
         this.#server = server;
         this.#client = client;
+
+        this.#packetsReceived = 0;
     }
 
     async handleData(data: Buffer)
     {
-        console.log("received data")
-        console.log(data);
+        let deobfuscatedPacketHeader = deobfuscateClientPacketHeader(data, this.#packetsReceived);
+        if(!deobfuscatedPacketHeader)
+        {
+            // TODO: disconnect the client, the packet is not valid
+            return;
+        }
 
-        let lookupTables = await readTables();
-        let validationTable = await readTable2();
+        let deobfuscatedPacket = deobfuscateClientPacket(deobfuscatedPacketHeader);
+        if(!deobfuscatedPacket)
+        {
+            // TODO: disconnect the client, the packet is not valid
+            return;
+        }
 
-        let packet = Buffer.from([0x03, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01, 0x00]);
-        console.log("obfuscating", packet);
-        packet = obfuscatePacket(lookupTables, validationTable, packet, 0);
-        console.log("sending", packet);
-        this.#client.sendData(packet);
+        ProtocolHandler.handleData(this, new HevaProtocolReader(deobfuscatedPacket));
+        //return;
+
+        console.log(deobfuscatedPacket)
+
+        let writer = new HevaProtocolWriter();
+        writer.writeUInt16(0x4);
+        writer.writeByte(0x00); // not used
+        writer.writeByte(0x00); // not used
+        writer.writeByte(0x00); // not used (byte 6)
+        writer.writeByte(0x00); // not used
+        writer.writeByte(0x00); // not used
+        writer.writeByte(0x00); // not used
+        writer.writeByte(0x01); // channel count
+        // channel data
+        writer.writeByte(0x01);
+        writer.writeByte(0x00);
+        writer.writeByte(0x00);
+        writer.writeByte(0x00);
+        writer.writeByte(0x00);
+        writer.writeByte(0x00);
+        // channel name
+        writer.writeStringNT("TestChannel");
+
+        let buffer = writer.getBuffer();
+
+        this.#client.sendData(buffer);
     }
 }
