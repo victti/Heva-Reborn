@@ -60,7 +60,7 @@ export function deobfuscateClientPacketHeader(packetData: Buffer<ArrayBuffer>, p
 
     if (((maskedBits < 0x1001) && (5 < maskedBits - (lookupIndex >>> 29))) && (((packetIndex + (lookupIndex >>> 29) ^ lookupIndex >>> 25) & 0xF) == 0))
     {
-        packetData.writeUInt32LE((packetHeader >> 10 & 0x3C0000) | ((packetHeader & 7) << 15) | extractedBits.readUInt32LE(0) | (packetHeader & 0x7000), 0);
+        packetData.writeUInt32LE(((packetHeader >> 10 & 0x3C0000) | ((packetHeader & 7) << 15) | extractedBits.readUInt32LE(0) | (packetHeader & 0x7000)) >>> 0, 0);
         packetData.writeUInt8(headerChecksum, 4);
 
         return packetData;

@@ -62,6 +62,33 @@ export default class BufferReader {
     }
 
     /**
+     * Moves the reading position to the specified offset.
+     *
+     * @param {number} offset The offset to move to.
+     * @param {'absolute' | 'relative' | 'end'} [mode='absolute'] The mode to use for setting the position.
+     *     'absolute' will set the position to the given offset, 'relative' will move the position by the given
+     *     offset from the current position, and 'end' will set the position to the end of the buffer minus the
+     *     given offset.
+     */
+    seek(offset: number, mode: 'absolute' | 'relative' | 'end' = 'absolute')
+    {
+        switch (mode) {
+            case 'absolute':
+                this._position = offset;
+                break;
+            case 'relative':
+                this._position += offset;
+                break;
+            case 'end':
+                this._position = this.buffer.length - offset;
+                break;
+        }
+
+        // Prevent out-of-bounds
+        this._position = Math.max(0, Math.min(this.position, this.buffer.length - 1));
+    }
+
+    /**
      * Reads a single byte from the buffer.
      * @returns The read byte.
      */

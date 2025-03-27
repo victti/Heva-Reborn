@@ -15,70 +15,70 @@ export class xtbReader
 
         let reader = new BufferReader(buffer);
 
-        let isValidFile = reader.readBytes(4).equals(Buffer.from("xTB1"));
+        let isValidFile = reader.readBytes(4).equals(Buffer.from("xTB1")); // 0-3 - local_1c / pcVar9
 
         if (!isValidFile)
             throw new Error("Invalid XTB file");
 
-        let unknown = reader.readInt32();
-        let unknown2 = reader.readInt32();
-        let columns = reader.readInt32();
-        let unknown3 = reader.readInt32();
-        let unknown4 = reader.readInt16();
+        let unknown1 = reader.readInt32(); // 4-7
+        let rowCount = reader.readInt32(); // 8-11
+        let columnCount = reader.readInt32(); // 12-15
 
-        for(let i = 0; i < columns; i++)
+        reader.seek(4, "relative");
+        reader.seek((2 * columnCount) + 2, "relative");
+
+        // 20 - sub_655DD9 - readBytes (buffer, destination, length)
+        // 32 - sub_655E90 - moveCursor (buffer, position, mode) | 0 - absolut | 1 - relative | 2 - end
+        // 36 - sub_6561C1 - buffer
+
+        let unknown2 = reader.readUInt16();
+
+        if(columnCount > 1)
         {
-            let unknown5 = reader.readInt16();
-
-        }
-
-        let unknown6 = reader.readInt16();
-
-        let breakAtEndFlag = false;
-        for(let i = 0; i < columns; i++)
-        {
-            if(breakAtEndFlag && i == columns - 1)
-                break;
-
-            let unknown7 = reader.readInt16();
-
-            if(i == 0 && unknown7 != 0)
-                breakAtEndFlag = true;
-        }
-
-        let columnNames = [];
-
-        for(let i = 0; i < columns; i++)
-        {
-            let columnName = this.#readString(reader);
-
-            if(columnName == "")
-                break;
-
-            columnNames.push(columnName);
-        }
-
-        let rows: string[][] = [];
-
-        let i = 0;
-        while(reader.canRead(2))
-        {
-            let columnsRow = [];
-            for(let j = 0; j < columnNames.length; j++)
+            for(let i = 0; i < columnCount - 1; i++)
             {
-                let columnValue = this.#readString(reader);
-
-                if(columnValue == "" && j == 0)
-                    break;
-
-                columnsRow.push(columnValue);
+                let unknown2 = reader.readUInt16();
+                //console.log(unknown2)
             }
-            console.log(columnsRow)            
-            rows.push(columnsRow);
-            i++;
         }
 
-        return new xtbFile(columnNames, rows);
+        if(columnCount > 0)
+        {
+            for(let i = 0; i < columnCount; i++)
+            {
+                let columnName = this.#readString(reader);
+
+                console.log(i, "column -", columnName)
+            }
+        }
+
+        let unknown3 = reader.readInt16();
+        reader.seek(unknown3, "relative");
+
+        if(rowCount - 1 > 1)
+        {
+            for(let i = 1; i < rowCount - 1; i++)
+            {
+                let comment = this.#readString(reader);
+    
+                console.log("row comment -", i - 1, "|", comment);
+            }
+        }
+
+        rowCount -= 2;
+        columnCount -= 1;
+
+        for(let r = 0; r < rowCount; r++)
+        {
+            for(let i = 0; i < columnCount; i++)
+            {
+                let data = this.#readString(reader);
+        
+                //console.log("row -", r, "| column -", i, "|", data);
+            }
+        }
+
+        //return new xtbFile(columnNames, rows);
     }
 
     static #readString(reader: BufferReader)

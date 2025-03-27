@@ -40,10 +40,10 @@ export default class HevaClient
             return;
         }
 
-        ProtocolHandler.handleData(this, new HevaProtocolReader(deobfuscatedPacket));
-        //return;
-
         console.log("deobfuscated:", deobfuscatedPacket);
+
+        ProtocolHandler.handleData(this, new HevaProtocolReader(deobfuscatedPacket));
+        return;
 
         let writer = new HevaProtocolWriter();
         writer.writeUInt16(8);
@@ -64,10 +64,16 @@ export default class HevaClient
 
     sendPacket(writer: HevaProtocolWriter)
     {
+        console.log(writer.buffer.toString("hex"));
         let buffer = writer.getBuffer();
 
         console.log("sending:" + buffer.toString("hex"));
 
         this.#client.sendData(buffer);
+    }
+
+    disconnect(reason: string)
+    {
+        console.warn("Disconnecting client:", reason);
     }
 }

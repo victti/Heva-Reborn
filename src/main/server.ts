@@ -19,7 +19,13 @@ async function EntryPoint()
     //let obj = mesh.exportToObj(true);
     //fs.writeFileSync("./test.obj", obj);
 
-    //xtbReader.readFromPath("./src/res/xtb/str_quest.xtb")
+    //xtbReader.readFromPath("./src/res/decompiled/xtb/clone_tribe.xtb")
+    //xtbReader.readFromPath("./src/res/decompiled/xtb/heva_zone_new.xtb")
+    //xtbReader.readFromPath("./src/res/decompiled/xtb/file_face_skin.xtb")
+    //xtbReader.readFromPath("./src/res/decompiled/xtb/dungeon_belonging.xtb")
+    //xtbReader.readFromPath("./src/res/decompiled/xtb/file_body.xtb")
+
+    //console.log("a")
 
     //My3DReader.readFromPath("./src/res/my3d/t_chico.my3d");
     //while(true);

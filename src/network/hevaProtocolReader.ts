@@ -28,4 +28,18 @@ export default class HevaProtocolReader extends BufferReader
     {
         return new Quaternion(this.readSingle(), this.readSingle(), this.readSingle(), this.readSingle());
     }
+
+    readStringNT()
+    {
+        const stringBytes: number[] = [];
+
+        let byte;
+        do {
+            byte = this.readByte();
+
+            stringBytes.push(byte);
+        } while (byte !== 0);
+
+        return Buffer.from(stringBytes).toString("utf8").slice(0, -1);
+    }
 }

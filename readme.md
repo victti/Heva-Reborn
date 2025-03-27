@@ -42,7 +42,7 @@ A: I've successfully decompiled the obfuscation and deobfuscation methods the ga
 
 **Q: Do you know the game packet format?**<br>
 A: Yes. Packets are made following this format: <br>
-***[2 byte packet length] [2 byte protocol] [1 byte length header validation] [1 byte length body validation] [packet body] [5 byte length garbage data] ***<br>
+***[2 byte packet length] [2 byte protocol] [1 byte length header validation] [1 byte length body validation] [packet body] [5 byte length garbage data]*** <br>
 but this is all obfuscated, so you can't read it directly when receiving or sending packets.
 
 **Q: How can I extract the game files?**<br>
