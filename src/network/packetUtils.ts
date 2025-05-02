@@ -410,3 +410,22 @@ export async function readTable3()
 
     return Buffer.from(table);
 }
+
+export async function readItemsTable()
+{
+    const fileStream = fs.createReadStream('./src/res/itemsHashTable.txt');
+
+    const rl = readline.createInterface({
+        input: fileStream,
+        crlfDelay: Infinity
+    });
+
+    let table = [];
+
+    for await (const line of rl)
+    {
+        table.push(Number.parseInt(line, 16));
+    }
+
+    return Buffer.from(table);
+}

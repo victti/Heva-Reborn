@@ -1,10 +1,6 @@
 import fs from 'fs';
 import BufferReader from "../../network/core/bufferReader";
-import Vector3 from '../3d/vector3';
-import Quaternion from '../3d/quaternion';
 import iconv from 'iconv-lite';
-
-const textEncondig: BufferEncoding = "ascii";
 
 export class xtbReader
 {
@@ -24,6 +20,9 @@ export class xtbReader
         let rowCount = reader.readInt32(); // 8-11
         let columnCount = reader.readInt32(); // 12-15
 
+        let columns = new Array<xtbColumn>(columnCount - 1);
+        let rows = new Array<xtbRow>(rowCount - 2);
+
         reader.seek(4, "relative");
         reader.seek((2 * columnCount) + 2, "relative");
 
@@ -37,8 +36,9 @@ export class xtbReader
         {
             for(let i = 0; i < columnCount - 1; i++)
             {
-                let unknown2 = reader.readUInt16();
-                //console.log(unknown2)
+                let dataType = reader.readUInt16();
+                
+                columns[i] = new xtbColumn("", dataType);
             }
         }
 
@@ -48,7 +48,8 @@ export class xtbReader
             {
                 let columnName = this.#readString(reader);
 
-                console.log(i, "column -", columnName)
+                if(i > 0)
+                    columns[i - 1].name = columnName;
             }
         }
 
@@ -61,7 +62,7 @@ export class xtbReader
             {
                 let comment = this.#readString(reader);
     
-                console.log("row comment -", i - 1, "|", comment);
+                rows[i - 1] = new xtbRow(i - 1, comment, []);
             }
         }
 
@@ -70,15 +71,18 @@ export class xtbReader
 
         for(let r = 0; r < rowCount; r++)
         {
+            let columnsData = new Array<string>(columnCount);
             for(let i = 0; i < columnCount; i++)
             {
                 let data = this.#readString(reader);
         
-                //console.log("row -", r, "| column -", i, "|", data);
+                columnsData[i] = data;
             }
+
+            rows[r].data = columnsData;
         }
 
-        //return new xtbFile(columnNames, rows);
+        return new xtbFile(columns, rows);
     }
 
     static #readString(reader: BufferReader)
@@ -87,26 +91,42 @@ export class xtbReader
 
         return iconv.decode(reader.readBytes(length), "euc-kr");
     }
-
-    static #readStringNull(reader: BufferReader)
-    {
-        let length = 0;
-
-        while(!reader.peekBytes(length).includes(0))
-            length++;
-
-        return reader.readBytes(length).toString(textEncondig);
-    }
 }
 
 export class xtbFile
 {
-    columns: string[];
-    rows: string[][];
+    columns: xtbColumn[];
+    rows: xtbRow[];
 
-    constructor(columns: string[], rows: string[][])
+    constructor(columns: xtbColumn[], rows: xtbRow[])
     {
         this.columns = columns;
         this.rows = rows;
+    }
+}
+
+class xtbColumn
+{
+    name: string;
+    dataType: number;
+
+    constructor(name: string, dataType: number)
+    {
+        this.name = name;
+        this.dataType = dataType;
+    }
+}
+
+class xtbRow
+{
+    id: number;
+    comment: string;
+    data: string[];
+
+    constructor(id: number, comment: string, data: string[])
+    {
+        this.id = id;
+        this.comment = comment;
+        this.data = data;
     }
 }

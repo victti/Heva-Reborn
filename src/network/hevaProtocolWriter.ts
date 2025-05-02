@@ -1,11 +1,14 @@
+import IProtocolWrite from "../type/network/IProtocolWrite";
 import BufferWriter from "./core/bufferWriter";
 import { obfuscateServerPacket } from "./packetUtils";
 
 export default class HevaProtocolWriter extends BufferWriter
 {
-    constructor()
+    constructor(protocolID: number)
     {
         super();
+        this.writeUInt16(0);
+        this.writeUInt16(protocolID);
         this.writeUInt16(0);
     }
 
@@ -41,6 +44,11 @@ export default class HevaProtocolWriter extends BufferWriter
         this.#writeDataLength(buffer);
         let obfuscated = obfuscateServerPacket(buffer);
         return typeof obfuscated === "number" ? buffer : obfuscated;
+    }
+
+    write(value: IProtocolWrite)
+    {
+        value.write(this);
     }
 
     /**

@@ -1,3 +1,4 @@
+import Character from "../core/character";
 import HevaServer from "../main/hevaServer";
 import TCPClient from "./core/tcp/tcpClient";
 import HevaProtocolReader from "./hevaProtocolReader";
@@ -12,12 +13,18 @@ export default class HevaClient
 
     #packetsReceived: number;
 
+    #charLimit: number;
+    #characters: Character[];
+
     constructor(server: HevaServer, client: TCPClient)
     {
         this.#server = server;
         this.#client = client;
 
         this.#packetsReceived = 0;
+    
+        this.#charLimit = 2;
+        this.#characters = [];
     }
 
     async handleData(data: Buffer)
@@ -28,6 +35,7 @@ export default class HevaClient
         if(!deobfuscatedPacketHeader)
         {
             // TODO: disconnect the client, the packet is not valid
+            console.error("Invalid packet header");
             return;
         }
 
@@ -37,6 +45,7 @@ export default class HevaClient
         if(!deobfuscatedPacket)
         {
             // TODO: disconnect the client, the packet is not valid
+            console.error("Invalid packet");
             return;
         }
 
@@ -75,5 +84,10 @@ export default class HevaClient
     disconnect(reason: string)
     {
         console.warn("Disconnecting client:", reason);
+    }
+
+    canCreateMoreCharacters(): boolean
+    {
+        return this.#characters.length < this.#charLimit;
     }
 }

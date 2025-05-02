@@ -5,9 +5,8 @@ export default class ChannelProtocol
 {
     static sendServerList(client: HevaClient)
     {
-        let writer = new HevaProtocolWriter();
-        writer.writeUInt16(8);
-        writer.writeUInt16(0);
+        let writer = new HevaProtocolWriter(8);
+
         writer.writeByte(0x10); // not used (byte 6)
         writer.writeByte(0x00); // not used
         writer.writeByte(0x00); // not used
@@ -28,15 +27,14 @@ export default class ChannelProtocol
 
     static sendChannels(client: HevaClient)
     {
-        let writer = new HevaProtocolWriter();
-        writer.writeUInt16(0x4);
-        writer.writeUInt16(0);
+        let writer = new HevaProtocolWriter(0x4);
+
         writer.writeByte(0x00); // not used (byte 6)
         writer.writeByte(0x00); // not used
         writer.writeByte(0x00); // not used
         writer.writeByte(0x00); // not used
         writer.writeByte(0x05); // channel count
-        for(let i = 1; i < 7; i++)
+        for(let i = 1; i < 2; i++)
         {
             // channel data
             writer.writeByte(i);
@@ -54,9 +52,8 @@ export default class ChannelProtocol
 
     static sendCharacters(client: HevaClient)
     {
-        let writer = new HevaProtocolWriter();
-        writer.writeUInt16(0x1c);
-        writer.writeUInt16(0);
+        let writer = new HevaProtocolWriter(0x1c);
+
         writer.writeByte(0x00);
 
         client.sendPacket(writer);

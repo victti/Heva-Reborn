@@ -1,6 +1,7 @@
 import Character from "../core/character";
 import HevaClient from "./hevaClient";
 import HevaProtocolReader from "./hevaProtocolReader";
+import HevaProtocolWriter from "./hevaProtocolWriter";
 import ChannelProtocol from "./protocols/channelProtocol";
 import CharacterCreationProtocol from "./protocols/characterCreationProtocol";
 
@@ -54,7 +55,7 @@ export default class ProtocolHandler
                 // I am not sure if this is how its supposed to work but doing this works
                 // both can put the game in the character selection state but channel protocol removes a dialog from the screen
                 // character creation protocol makes two free slots for characters, you can even send already made characters
-                ChannelProtocol.sendCharacters(client);
+                ChannelProtocol.sendCharacters(client); // <- this seems wrong
                 CharacterCreationProtocol.sendCharacterList(client);
                 return true;
             case 17:
@@ -86,6 +87,12 @@ export default class ProtocolHandler
                 let bottom = data.readUInt16();
                 let name = data.readStringNT();
 
+                if(!client.canCreateMoreCharacters())
+                {
+                    CharacterCreationProtocol.sendCharactersFull(client);
+                    return true;
+                }
+
                 CharacterCreationProtocol.sendCreateCharacter(client, new Character(this.#idTemporary++, name, gender, hairType, hairColor, faceType, top, bottom, 1, 1));
                 return true;
             case 20:
@@ -106,6 +113,16 @@ export default class ProtocolHandler
                 let characterId = data.readUInt32();
 
                 CharacterCreationProtocol.sendPlay(client);
+                return true;
+            case 227:
+                let something = new HevaProtocolWriter(0x23); //0x1c
+                
+                for(let i = 0; i < 20; i++)
+                {
+                    something.writeByte(4);
+                }
+
+                client.sendPacket(something);
                 return true;
             default:
                 console.log(`Unknown protocol ${protocol} for packet ${data.bufferT.toString("hex").match(/(.{1,64})/g)!.map(s => s.match(/.{1,2}/g)!.join(' '))}`);

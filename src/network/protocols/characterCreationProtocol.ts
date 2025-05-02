@@ -6,9 +6,8 @@ export default class CharacterCreationProtocol
 {
     static sendNameTooLong(client: HevaClient)
     {
-        let writer = new HevaProtocolWriter();
-        writer.writeUInt16(0x13);
-        writer.writeUInt16(0);
+        let writer = new HevaProtocolWriter(0x13);
+
         writer.writeByte(0x06);
 
         client.sendPacket(writer);
@@ -16,9 +15,8 @@ export default class CharacterCreationProtocol
 
     static sendNameUnavailable(client: HevaClient)
     {
-        let writer = new HevaProtocolWriter();
-        writer.writeUInt16(0x13);
-        writer.writeUInt16(0);
+        let writer = new HevaProtocolWriter(0x13);
+
         writer.writeByte(0x03);
 
         client.sendPacket(writer);
@@ -26,9 +24,8 @@ export default class CharacterCreationProtocol
 
     static sendNameDuplicated(client: HevaClient)
     {
-        let writer = new HevaProtocolWriter();
-        writer.writeUInt16(0x13);
-        writer.writeUInt16(0);
+        let writer = new HevaProtocolWriter(0x13);
+
         writer.writeByte(0x02);
 
         client.sendPacket(writer);
@@ -36,9 +33,8 @@ export default class CharacterCreationProtocol
 
     static sendCharactersFull(client: HevaClient)
     {
-        let writer = new HevaProtocolWriter();
-        writer.writeUInt16(0x13);
-        writer.writeUInt16(0);
+        let writer = new HevaProtocolWriter(0x13);
+
         writer.writeByte(0x04);
 
         client.sendPacket(writer);
@@ -46,9 +42,8 @@ export default class CharacterCreationProtocol
 
     static sendNameAvailable(client: HevaClient)
     {
-        let writer = new HevaProtocolWriter();
-        writer.writeUInt16(0x11);
-        writer.writeUInt16(0);
+        let writer = new HevaProtocolWriter(0x11);
+
         writer.writeByte(0x00);
 
         client.sendPacket(writer);
@@ -56,52 +51,20 @@ export default class CharacterCreationProtocol
 
     static sendCreateCharacter(client: HevaClient, character: Character)
     {
-        let writer = new HevaProtocolWriter();
-        writer.writeUInt16(0x13);
-        writer.writeUInt16(0);
+        let writer = new HevaProtocolWriter(0x13);
+
         writer.writeByte(0x00);
 
-        writer.writeUInt32(character.id);
-        writer.writeByte(character.gender);
-        writer.writeUInt16(character.level);
-        writer.writeUInt16(character.class);
-        writer.writeByte(0);
-        writer.writeByte(0);
-        writer.writeByte(0);
-        writer.writeByte(0);
-        writer.writeUInt16(15);
-        writer.writeByte(0);
-
-        // 19 - hand weapon
-        // 27 - shirt item
-        // 28 - hand weapon again? gun
-        // 36 - pants item
-        // 37 - hand weapon again? gun
-        // 45 - hands item
-        // 46 - hand weapon again? gun
-        // 54 - foot item
-        // 55 - hand weapon again? gun
-        // 64 - hand weapon again? gun
-        // 72 - right hand hand weapon again? sword
-        // 73 - hand weapon again? gun
-        // 81 - left hand hand weapon again? sword
-
-        writer.writeByte(1);
-        for(let i = 0; i < 107; i++)
-        {
-            writer.writeByte(0);
-        }
-
-        writer.writeStringNT(character.name);
+        character.writeCharacterLightData(writer);
 
         client.sendPacket(writer);
+
+        //setTimeout(() => CharacterCreationProtocol.teste(client, 0, 0), 1000);
     }
 
     static sendCharacterList(client: HevaClient)
     {
-        let writer = new HevaProtocolWriter();
-        writer.writeUInt16(0x12);
-        writer.writeUInt16(0);
+        let writer = new HevaProtocolWriter(0x12);
 
         writer.writeUInt32(0);
         writer.writeUInt32(0);
@@ -113,14 +76,55 @@ export default class CharacterCreationProtocol
 
     static sendPlay(client: HevaClient)
     {
-        let writer = new HevaProtocolWriter();
-        writer.writeUInt16(0x15);
-        writer.writeUInt16(0);
+        let writer = new HevaProtocolWriter(0x15);
 
-        for(let i = 0; i < 1000; i++)
+        let bytes = Buffer.alloc(4000, 0);
+
+        bytes.writeUInt32LE(1, 0); // id
+
+        bytes[4] = 0; // seems related to the gender, it did not change the player model, only the icon
+
+        bytes.writeUInt16LE(0, 5); // hair type and color
+        bytes.writeUInt16LE(0, 7); // face type
+
+        // more customization stuff
+        bytes[9] = 0;
+        bytes[10] = 0;
+        bytes[11] = 0;
+        bytes[12] = 0;
+
+        bytes.writeUInt16LE(50, 13); // currentHP
+        bytes.writeUInt32LE(60, 17); // currentMP
+
+        bytes.writeUInt16LE(1, 21); // level (apparently only affects the xp bar)
+        bytes.writeUInt16LE(1, 23); // job
+        bytes.writeUInt32LE(0, 25); // current XP
+        bytes.writeUInt32LE(0, 29); // next level XP offset ?
+
+        bytes.writeUInt8(0, 34); // energy bar
+
+        bytes.writeUInt16LE(1, 38); // map id | 31 for tutorial map
+
+        bytes.writeUInt16LE(0, 40); // spawn rotation
+
+        bytes.writeUInt16LE(100, 42); // spawn position x
+        bytes.writeUInt16LE(1050, 44); // spawn position y - forward
+        bytes.writeUInt16LE(400, 46); // spawn position z - up
+
+        bytes.writeUInt32LE(0, 64); // achivement points
+
+        bytes.writeUInt16LE(0, 80); // medals
+
+        // 1500-2200 has items
+        // before that it seems to have skill related things on quick slots
+
+        // empty
+        for(let i = 0; i < 2216; i++)
         {
-            writer.writeByte(0);
+            writer.writeByte(bytes[i]);
         }
+
+        writer.writeStringNT("teste"); // player name
 
         client.sendPacket(writer);
     }
