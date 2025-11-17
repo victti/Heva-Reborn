@@ -1,6 +1,7 @@
 import ItemsController from "../controllers/itemsController";
 import NetworkController from "../controllers/networkController";
-import { readTable2, readTables } from "../network/packetUtils";
+import GameBoard from "../controllers/obfuscation/GameBoard";
+import { readTable2 } from "../network/packetUtils";
 import httpServer from "./httpServer";
 
 export default class HevaServer
@@ -13,10 +14,12 @@ export default class HevaServer
     #networkController: NetworkController;
 
     #lookupTables: number[][];
-    #validationTable: number[];
+    #validationTable: Buffer;
+    #crcTable: number[];
 
     static get lookupTables() { return HevaServer.#instance.#lookupTables; }
-    static get validationTable() { return HevaServer.#instance.#validationTable; }
+    static get validationTable() { return HevaServer.#instance.#validationTable; }    
+    static get crcTable() { return HevaServer.#instance.#crcTable; }
 
     constructor()
     {
@@ -24,8 +27,12 @@ export default class HevaServer
 
         this.#devHtpp = new httpServer();
 
-        this.#lookupTables = [];
-        this.#validationTable = [];
+        let gameBoard = new GameBoard();
+        gameBoard.initializeGameBoard(0xabcdef12); // default seed for the initial connection
+
+        this.#lookupTables = gameBoard.getRows();
+        this.#validationTable = Buffer.from(gameBoard.getFinalArray());
+        this.#crcTable = [];
         
         this.#itemsController = new ItemsController();
         this.#networkController = new NetworkController(this);
@@ -33,8 +40,7 @@ export default class HevaServer
 
     async start()
     {
-        this.#lookupTables = await readTables();
-        this.#validationTable = await readTable2();
+        this.#crcTable = await readTable2();
 
         this.#devHtpp.start();
         
