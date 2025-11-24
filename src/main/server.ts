@@ -80,3 +80,5 @@ async function test()
 }
 
 EntryPoint();
+
+//require("./testWindow");

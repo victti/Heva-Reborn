@@ -3,11 +3,12 @@ import HevaServer from "../main/hevaServer";
 import TCPClient from "./core/tcp/tcpClient";
 import HevaProtocolReader from "./hevaProtocolReader";
 import HevaProtocolWriter from "./hevaProtocolWriter";
-import { deobfuscateClientPacket, deobfuscateClientPacketHeader, obfuscateServerPacket, readTable2, readTables } from "./packetUtils";
+import { deobfuscateClientPacket, deobfuscateClientPacketHeader, obfuscateServerPacket, readTable2 } from "./packetUtils";
 import ProtocolHandler from "./protocolHandler";
 
 export default class HevaClient
 {
+    #id: number;
     #server: HevaServer;
     #client: TCPClient;
 
@@ -16,10 +17,11 @@ export default class HevaClient
     #charLimit: number;
     #characters: Character[];
 
-    constructor(server: HevaServer, client: TCPClient)
+    constructor(server: HevaServer, client: TCPClient, id: number)
     {
         this.#server = server;
         this.#client = client;
+        this.#id = id;
 
         this.#packetsReceived = 0;
     
@@ -29,17 +31,18 @@ export default class HevaClient
 
     async handleData(data: Buffer)
     {
-        console.log("received:", data);
+        console.log(`received (${this.#id}):`, data);
 
         let deobfuscatedPacketHeader = deobfuscateClientPacketHeader(data, this.#packetsReceived);
+        
+        this.#packetsReceived += 1;
+
         if(!deobfuscatedPacketHeader)
         {
             // TODO: disconnect the client, the packet is not valid
             console.error("Invalid packet header");
             return;
         }
-
-        this.#packetsReceived += 1;
 
         let deobfuscatedPacket = deobfuscateClientPacket(deobfuscatedPacketHeader);
         if(!deobfuscatedPacket)
@@ -69,6 +72,21 @@ export default class HevaClient
         }
 
         this.sendPacket(writer);
+    }
+
+    resetPacketCount()
+    {
+        this.#packetsReceived = 0;
+    }
+
+    addPacketCount()
+    {
+        this.#packetsReceived += 1;
+    }
+
+    removePacketCount()
+    {
+        this.#packetsReceived -= 1;
     }
 
     sendPacket(writer: HevaProtocolWriter)

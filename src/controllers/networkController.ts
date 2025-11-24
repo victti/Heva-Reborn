@@ -11,10 +11,13 @@ export default class NetworkController
 
     #clients: Map<TCPClient, HevaClient>;
 
+    #id: number;
+
     constructor(server: HevaServer)
     {
         this.#server = server;
         this.#clients = new Map();
+        this.#id = 1;
 
         this.#tcpServer = new TCPServer(new TCPServerOptions(env.PORT, '0.0.0.0', 65535, false));
         this.#tcpServer.onClientConnect((client: TCPClient) => this.#OnClientConnect(client));
@@ -30,7 +33,7 @@ export default class NetworkController
 
     #OnClientConnect(client: TCPClient)
     {
-        let hevaClient = new HevaClient(this.#server, client);
+        let hevaClient = new HevaClient(this.#server, client, this.#id++);
 
         this.#clients.set(client, hevaClient);
 

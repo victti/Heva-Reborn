@@ -27,8 +27,13 @@ export default class ProtocolHandler
         let protocol = data.readUInt16();
         data.readUInt16(); // Empty (I think)
 
+        console.log("received protocol:", protocol.toString(16))
+
         switch(protocol)
         {
+            case 0x01: // Set character title, show/hide equips
+
+                return false;
             case 3:
                 let someClientValue = data.readUInt32();
                 let playbusterValue = data.readUInt32();
@@ -112,21 +117,57 @@ export default class ProtocolHandler
             case 21:
                 let characterId = data.readUInt32();
 
-                CharacterCreationProtocol.sendPlay(client);
+                CharacterCreationProtocol.sendConnectToGameServer(client);
                 return true;
-            case 227:
-                let something = new HevaProtocolWriter(0x23); //0x1c
-                
-                for(let i = 0; i < 20; i++)
-                {
-                    something.writeByte(4);
-                }
+            case 11:
 
-                client.sendPacket(something);
+                CharacterCreationProtocol.sendPlay(client);
+
+                return false;
+            case 0x1C: // channel list
+
+                return false;
+            case 0x4e:
+                client.addPacketCount(); // I am not sure why
                 return true;
+            case 0x33:
+                let chatMessageType = data.readByte(); // 0x0 - Normal | 0x0A - Channel | 0x03 - Party | 0x0F - Exped. | 0x04 - Guild 
+                let chatMessage = data.readStringNT();
+
+                console.log(`chat message (${chatMessageType}):`, chatMessage);
+                return true;
+            case 0x4c: // attack button
+
+                return false;
+            case 0x51: // swap weapons
+
+                return false;
+            case 0x84: // Party finder
+
+                return false;
             default:
                 console.log(`Unknown protocol ${protocol} for packet ${data.bufferT.toString("hex").match(/(.{1,64})/g)!.map(s => s.match(/.{1,2}/g)!.join(' '))}`);
                 return false;
         }
+    }
+
+    static #packXYZ(x: number, y: number, z: number, coordinateScale: number = 0.125)
+    {
+        const fixedX = Math.round(x / coordinateScale);
+        const fixedY = Math.round(y / coordinateScale);
+        const fixedZ = Math.round(z / coordinateScale);
+
+        const data0_low = fixedX & 0x1FFF;  // Lower 13 bits for X
+        const data0_high = fixedZ & 0x3FFFF; // Middle 18 bits for Z
+        const data0 = (data0_high << 13) | (data0_low);
+        
+        const data1_low = (fixedZ >> 18) & 0x7FFF;  // Upper bits of Z
+        const data1_high = (fixedY & 0x1FFFF) << 15; // Y in upper 17 bits
+        const data1 = data1_high | data1_low;
+        
+        return {
+            data0: data0 >>> 0, // Convert to unsigned
+            data1: data1 >>> 0
+        };
     }
 }

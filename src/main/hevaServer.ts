@@ -2,6 +2,7 @@ import ItemsController from "../controllers/itemsController";
 import NetworkController from "../controllers/networkController";
 import GameBoard from "../controllers/obfuscation/GameBoard";
 import { readTable2 } from "../network/packetUtils";
+import WinDivertProxy from "../network/windivertProxy";
 import httpServer from "./httpServer";
 
 export default class HevaServer
@@ -16,6 +17,8 @@ export default class HevaServer
     #lookupTables: number[][];
     #validationTable: Buffer;
     #crcTable: number[];
+
+    #windivert?: WinDivertProxy;
 
     static get lookupTables() { return HevaServer.#instance.#lookupTables; }
     static get validationTable() { return HevaServer.#instance.#validationTable; }    
@@ -36,6 +39,9 @@ export default class HevaServer
         
         this.#itemsController = new ItemsController();
         this.#networkController = new NetworkController(this);
+
+        if(false)
+            this.#windivert = new WinDivertProxy("209.222.11.178", 50000, "192.168.18.6");
     }
 
     async start()
@@ -46,5 +52,8 @@ export default class HevaServer
         
         await this.#itemsController.start();
         this.#networkController.start();
+
+        if(this.#windivert)
+            await this.#windivert.start();
     }
 }

@@ -74,11 +74,28 @@ export default class CharacterCreationProtocol
         client.sendPacket(writer);
     }
 
+    static sendConnectToGameServer(client: HevaClient, ip: string = "127.0.0.1", port: number = 50000)
+    {
+        let writer = new HevaProtocolWriter(15);
+
+        const ipParts = ip.split('.').map(part => parseInt(part));
+        const ipBinary = ((ipParts[0] << 24) | (ipParts[1] << 16) | (ipParts[2] << 8) | ipParts[3]) >>> 0;
+
+        writer.writeUInt16(port);
+        writer.writeUInt32(ipBinary);
+        writer.writeUInt32(0xabcdef12); // this seems to be a new encryption key, need to check
+
+        client.sendPacket(writer);
+    }
+
     static sendPlay(client: HevaClient)
     {
         let writer = new HevaProtocolWriter(0x15);
 
         let bytes = Buffer.alloc(4000, 0);
+
+        for(let i = 0; i < bytes.length; i++)
+            bytes[i] = (i % 2) + 1;
 
         bytes.writeUInt32LE(1, 0); // id
 
@@ -93,7 +110,7 @@ export default class CharacterCreationProtocol
         bytes[11] = 0;
         bytes[12] = 0;
 
-        bytes.writeUInt16LE(50, 13); // currentHP
+        bytes.writeUInt32LE(80, 13); // currentHP
         bytes.writeUInt32LE(60, 17); // currentMP
 
         bytes.writeUInt16LE(1, 21); // level (apparently only affects the xp bar)
